@@ -22,6 +22,7 @@
   <depend>moveit_core</depend>
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
+  <depend>pybind11_catkin</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>tf2_ros</depend>
   <depend>geometric_shapes</depend>
