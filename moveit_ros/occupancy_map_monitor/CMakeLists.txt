@@ -24,6 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometric_shapes
   pluginlib
   tf2_ros
+  OPTIONAL_COMPONENTS
+  pybind11_catkin
 )
 
 find_package(Eigen3 REQUIRED)
@@ -61,6 +63,18 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_ros_occupancy_map_server src/occupancy_map_server.cpp)
 target_link_libraries(moveit_ros_occupancy_map_server ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+catkin_python_setup()
+
+if (pybind11_catkin_FOUND)
+    set(py_libs moveit_ros_occupancy_map_monitor)
+    pybind_add_module(pymoveit_ros_occupancy_map_monitor src/pyoccupancy_map_monitor.cpp)
+    target_include_directories(pymoveit_ros_occupancy_map_monitor SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+    target_link_libraries(pymoveit_ros_occupancy_map_monitor PUBLIC ${py_libs} ${catkin_LIBRARIES})
+
+    install(TARGETS pymoveit_ros_occupancy_map_monitor LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+endif()
+
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
