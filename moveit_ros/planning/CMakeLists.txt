@@ -29,9 +29,12 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_msgs
   tf2_ros
+  pybind11_catkin
 )
 
 find_package(Eigen3 REQUIRED)
+
+catkin_python_setup()
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
@@ -98,6 +101,22 @@ add_subdirectory(planning_components_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 add_subdirectory(moveit_cpp)
+
+if(pybind11_catkin_FOUND)
+  set(pylibs
+      moveit_robot_model_loader
+  )
+
+  pybind_add_module(pymoveit_ros_planning
+      python/pymoveit_ros_planning.cpp
+      robot_model_loader/src/pyrobot_model_loader.cpp
+  )
+  target_include_directories(pymoveit_ros_planning SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+  target_link_libraries(pymoveit_ros_planning PUBLIC ${pylibs} ${catkin_LIBRARIES})
+
+  install(TARGETS pymoveit_ros_planning LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+endif()
+
 
 install(
   FILES

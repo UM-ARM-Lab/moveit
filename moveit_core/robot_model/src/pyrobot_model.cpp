@@ -49,15 +49,56 @@ void def_robot_model_bindings(py::module& m)
   py::class_<RobotModel, RobotModelPtr>(m, "RobotModel")
       .def(py::init<const urdf::ModelInterfaceSharedPtr&, const srdf::ModelConstSharedPtr&>(), py::arg("urdf_model"),
            py::arg("srdf_model"))
+      .def("distance", &RobotModel::distance)
+      .def("enforcePositionBounds", py::overload_cast<double*>(&RobotModel::enforcePositionBounds, py::const_))
+      .def("enforcePositionBounds",
+           py::overload_cast<double*, const JointBoundsVector&>(&RobotModel::enforcePositionBounds, py::const_))
+      .def("getActiveJointModelsBounds", &RobotModel::getActiveJointModelsBounds)
+      .def("getCommonRoot", &RobotModel::getCommonRoot)
+      .def("getMaximumExtent", py::overload_cast<>(&RobotModel::getMaximumExtent, py::const_))
+      .def("getMaximumExtent", py::overload_cast<const JointBoundsVector&>(&RobotModel::getMaximumExtent, py::const_))
+      .def("getMissingVariableNames", &RobotModel::getMissingVariableNames)
+      .def("getModelFrame", &RobotModel::getModelFrame)
       .def("getName", &RobotModel::getName)
-      .def("getLinkModelNames", &RobotModel::getLinkModelNames)
+      .def("getSRDF", &RobotModel::getSRDF)
+      .def("getURDF", &RobotModel::getURDF)
+      .def("getVariableBounds", &RobotModel::getVariableBounds)
+      .def("getVariableCount", &RobotModel::getVariableCount)
+      .def("getVariableDefaultPositions",
+           py::overload_cast<double*>(&RobotModel::getVariableDefaultPositions, py::const_))
+      .def("getVariableDefaultPositions",
+           py::overload_cast<std::map<std::string, double>&>(&RobotModel::getVariableDefaultPositions, py::const_))
+      .def("getVariableDefaultPositions",
+           py::overload_cast<std::vector<double>&>(&RobotModel::getVariableDefaultPositions, py::const_))
+      .def("getVariableIndex", &RobotModel::getVariableIndex)
+      .def("getVariableNames", &RobotModel::getVariableNames)
+      .def("getRootJoint", &RobotModel::getRootJoint)
+      .def("getRootJointName", &RobotModel::getRootJointName)
+      .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel, py::const_))
+      .def("getJointModel", py::overload_cast<int>(&RobotModel::getJointModel, py::const_))
+      .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel))
+      .def("getJointModels", py::overload_cast<>(&RobotModel::getJointModels, py::const_))
       .def("getJointModelNames", &RobotModel::getJointModelNames)
+      .def("getActiveJointModels", py::overload_cast<>(&RobotModel::getActiveJointModels, py::const_))
+      .def("getSingleDOFJointModels", &RobotModel::getSingleDOFJointModels)
+      .def("getMultiDOFJointModels", &RobotModel::getMultiDOFJointModels)
+      .def("getContinuousJointModels", &RobotModel::getContinuousJointModels)
+      .def("getMimicJointModels", &RobotModel::getMimicJointModels)
+      .def("getJointOfVariable", py::overload_cast<int>(&RobotModel::getJointOfVariable, py::const_))
+      .def("getJointOfVariable", py::overload_cast<const std::string&>(&RobotModel::getJointOfVariable, py::const_))
+      .def("getJointModelCount", &RobotModel::getJointModelCount)
+      .def("hasJointModelGroup", &RobotModel::hasJointModelGroup)
+      .def("getJointModelGroup", py::overload_cast<const std::string&>(&RobotModel::getJointModelGroup, py::const_))
+      .def("getJointModelGroup", py::overload_cast<const std::string&>(&RobotModel::getJointModelGroup))
+      .def("getJointModelGroups", py::overload_cast<>(&RobotModel::getJointModelGroups, py::const_))
+      .def("getJointModelGroupNames", &RobotModel::getJointModelGroupNames)
+      .def("getEndEffector", py::overload_cast<const std::string&>(&RobotModel::getEndEffector, py::const_))
       //
       ;
 
   py::class_<JointModelGroup, JointModelGroupPtr>(m, "JointModelGroup")
       .def(py::init<const std::string&, const srdf::Model::Group&, const std::vector<const JointModel*>&,
-               const RobotModel*>(),
+                    const RobotModel*>(),
            py::arg("name"), py::arg("config"), py::arg("joint_vector"), py::arg("parent_model"))
       .def("addDefaultState", &JointModelGroup::addDefaultState)
       .def("attachEndEffector", &JointModelGroup::attachEndEffector)
@@ -112,7 +153,7 @@ void def_robot_model_bindings(py::module& m)
       .def("getUpdatedLinkModelsWithGeometrySet", &JointModelGroup::getUpdatedLinkModelsWithGeometrySet)
       .def("getVariableCount", &JointModelGroup::getVariableCount)
       .def("getVariableDefaultPositions", py::overload_cast<const std::string&, std::map<std::string, double>&>(
-          &JointModelGroup::getVariableDefaultPositions, py::const_))
+                                              &JointModelGroup::getVariableDefaultPositions, py::const_))
       .def("getVariableDefaultPositions",
            py::overload_cast<double*>(&JointModelGroup::getVariableDefaultPositions, py::const_))
       .def("getVariableDefaultPositions",
@@ -122,39 +163,6 @@ void def_robot_model_bindings(py::module& m)
       .def("getVariableGroupIndex", &JointModelGroup::getVariableGroupIndex)
       .def("getVariableIndexList", &JointModelGroup::getVariableIndexList)
       .def("getVariableNames", &JointModelGroup::getVariableNames)
-      .def("getVariableRandomPositions", py::overload_cast<random_numbers::RandomNumberGenerator&, double*>(
-          &JointModelGroup::getVariableRandomPositions, py::const_))
-      .def("getVariableRandomPositions",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const JointBoundsVector&>(
-               &JointModelGroup::getVariableRandomPositions, py::const_))
-      .def("getVariableRandomPositions", py::overload_cast<random_numbers::RandomNumberGenerator&, std::vector<double>&>(
-          &JointModelGroup::getVariableRandomPositions, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const double*, const double>(
-               &JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const double*, const std::vector<double>&>(
-               &JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const JointBoundsVector&, const double*,
-               const double>(&JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const JointBoundsVector&, const double*,
-               const std::map<JointModel::JointType, double>&>(
-               &JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, double*, const JointBoundsVector&, const double*,
-               const std::vector<double>&>(&JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, std::vector<double>&, const std::vector<double>&,
-               const std::map<JointModel::JointType, double>&>(
-               &JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, std::vector<double>&, const std::vector<double>&,
-               const std::vector<double>&>(&JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
-      .def("getVariableRandomPositionsNearBy",
-           py::overload_cast<random_numbers::RandomNumberGenerator&, std::vector<double>&, const std::vector<double>&,
-               double>(&JointModelGroup::getVariableRandomPositionsNearBy, py::const_))
       .def("hasJointModel", &JointModelGroup::hasJointModel)
       .def("hasLinkModel", &JointModelGroup::hasLinkModel)
       .def("interpolate", &JointModelGroup::interpolate)
@@ -165,9 +173,9 @@ void def_robot_model_bindings(py::module& m)
       .def("isSingleDOFJoints", &JointModelGroup::isSingleDOFJoints)
       .def("isSubgroup", &JointModelGroup::isSubgroup)
       .def("isValidVelocityMove", py::overload_cast<const double*, const double*, std::size_t, double>(
-          &JointModelGroup::isValidVelocityMove, py::const_))
+                                      &JointModelGroup::isValidVelocityMove, py::const_))
       .def("isValidVelocityMove", py::overload_cast<const std::vector<double>&, const std::vector<double>&, double>(
-          &JointModelGroup::isValidVelocityMove, py::const_))
+                                      &JointModelGroup::isValidVelocityMove, py::const_))
       .def("printGroupInfo",
            [](const JointModelGroup& jmg) {
              std::stringstream ss;
@@ -192,6 +200,6 @@ void def_robot_model_bindings(py::module& m)
              jmg.printGroupInfo(ss);
              return ss.str();
            })
-    //
+      //
       ;
 }
