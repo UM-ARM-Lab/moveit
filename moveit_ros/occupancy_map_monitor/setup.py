@@ -5,8 +5,6 @@ from setuptools import find_packages, setup
 
 packages = find_packages('src')
 packages.remove("moveit")
-print(">>>>")
-print(packages)
 
 d = generate_distutils_setup(
     packages=packages,
