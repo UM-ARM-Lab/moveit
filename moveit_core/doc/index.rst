@@ -10,4 +10,4 @@ Python API Reference: moveit_core
 .. toctree::
 
     Home page <self>
-    API reference <api.rst>
+    moveit_core <_autosummary/moveit.core.rst>
