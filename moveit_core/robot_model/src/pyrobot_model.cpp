@@ -49,10 +49,18 @@ void def_robot_model_bindings(py::module& m)
   py::class_<RobotModel, RobotModelPtr>(m, "RobotModel")
       .def(py::init<const urdf::ModelInterfaceSharedPtr&, const srdf::ModelConstSharedPtr&>(), py::arg("urdf_model"),
            py::arg("srdf_model"))
-      .def("distance", &RobotModel::distance)
-      .def("enforcePositionBounds", py::overload_cast<double*>(&RobotModel::enforcePositionBounds, py::const_))
+      .def("distance", [](const RobotModel& robot_model, std::vector<double> state1,
+                          std::vector<double> state2) { return robot_model.distance(state1.data(), state2.data()); })
       .def("enforcePositionBounds",
-           py::overload_cast<double*, const JointBoundsVector&>(&RobotModel::enforcePositionBounds, py::const_))
+           [](RobotModel& robot_model, std::vector<double>& state) {
+             auto const change = robot_model.enforcePositionBounds(state.data());
+             return std::make_tuple(change, state);
+           })
+      .def("enforcePositionBounds",
+           [](RobotModel& robot_model, std::vector<double>& state, JointBoundsVector const& active_joint_bounds) {
+             auto const change = robot_model.enforcePositionBounds(state.data(), active_joint_bounds);
+             return std::make_tuple(change, state);
+           })
       .def("getActiveJointModelsBounds", &RobotModel::getActiveJointModelsBounds)
       .def("getCommonRoot", &RobotModel::getCommonRoot)
       .def("getMaximumExtent", py::overload_cast<>(&RobotModel::getMaximumExtent, py::const_))
@@ -77,7 +85,17 @@ void def_robot_model_bindings(py::module& m)
       .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel, py::const_))
       .def("getJointModel", py::overload_cast<int>(&RobotModel::getJointModel, py::const_))
       .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel))
-      .def("getJointModels", py::overload_cast<>(&RobotModel::getJointModels, py::const_))
+      .def("getJointModels",
+           [](RobotModel const& robot_model) {
+             // JointModel is an abstract class, so we must store pointers instead of values
+             std::vector<std::unique_ptr<JointModel const>> joint_models;
+             auto const& joint_models_raw = robot_model.getJointModels();
+             std::transform(joint_models_raw.cbegin(), joint_models_raw.cend(), std::back_inserter(joint_models),
+                            [](JointModel const* joint_model) {
+                              return std::unique_ptr<JointModel const>(joint_model);
+                            });
+             return joint_models;
+           })
       .def("getJointModelNames", &RobotModel::getJointModelNames)
       .def("getActiveJointModels", py::overload_cast<>(&RobotModel::getActiveJointModels, py::const_))
       .def("getSingleDOFJointModels", &RobotModel::getSingleDOFJointModels)
@@ -200,6 +218,29 @@ void def_robot_model_bindings(py::module& m)
              jmg.printGroupInfo(ss);
              return ss.str();
            })
+      //
+      ;
+  py::class_<JointModel, std::shared_ptr<JointModel>>(m, "JointModel")
+      //
+      ;
+  py::class_<FixedJointModel, std::shared_ptr<FixedJointModel>>(m, "FixedJointModel").def(py::init<std::string>())
+      //
+      ;
+  py::class_<RevoluteJointModel, std::shared_ptr<RevoluteJointModel>>(m, "RevoluteJointModel")
+      .def(py::init<std::string>())
+      //
+      ;
+  py::class_<VariableBounds, std::shared_ptr<VariableBounds>>(m, "VariableBounds")
+      .def(py::init<>())
+      .def_readwrite("min_position_", &VariableBounds::min_position_)
+      .def_readwrite("max_position_", &VariableBounds::max_position_)
+      .def_readwrite("position_bounded_", &VariableBounds::position_bounded_)
+      .def_readwrite("min_velocity_", &VariableBounds::min_velocity_)
+      .def_readwrite("max_velocity_", &VariableBounds::max_velocity_)
+      .def_readwrite("velocity_bounded_", &VariableBounds::velocity_bounded_)
+      .def_readwrite("min_acceleration_", &VariableBounds::min_acceleration_)
+      .def_readwrite("max_acceleration_", &VariableBounds::max_acceleration_)
+      .def_readwrite("acceleration_bounded_", &VariableBounds::acceleration_bounded_)
       //
       ;
 }
