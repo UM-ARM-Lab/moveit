@@ -35,6 +35,7 @@
 /* Author: Peter Mitrano */
 
 #include <pybind11/pybind11.h>
+#include <pybind11/eigen.h>
 #include <pybind11/stl.h>
 #include <moveit/robot_model/robot_model.h>
 #include <urdf_model/model.h>
@@ -49,75 +50,31 @@ void def_robot_model_bindings(py::module& m)
   py::class_<RobotModel, RobotModelPtr>(m, "RobotModel")
       .def(py::init<const urdf::ModelInterfaceSharedPtr&, const srdf::ModelConstSharedPtr&>(), py::arg("urdf_model"),
            py::arg("srdf_model"))
-      .def("distance", [](const RobotModel& robot_model, std::vector<double> state1,
-                          std::vector<double> state2) { return robot_model.distance(state1.data(), state2.data()); })
-      .def("enforcePositionBounds",
-           [](RobotModel& robot_model, std::vector<double>& state) {
-             auto const change = robot_model.enforcePositionBounds(state.data());
-             return std::make_tuple(change, state);
-           })
-      .def("enforcePositionBounds",
-           [](RobotModel& robot_model, std::vector<double>& state, JointBoundsVector const& active_joint_bounds) {
-             auto const change = robot_model.enforcePositionBounds(state.data(), active_joint_bounds);
-             return std::make_tuple(change, state);
-           })
       .def("getActiveJointModelsBounds", &RobotModel::getActiveJointModelsBounds)
-      .def("getCommonRoot", &RobotModel::getCommonRoot)
       .def("getMaximumExtent", py::overload_cast<>(&RobotModel::getMaximumExtent, py::const_))
       .def("getMaximumExtent", py::overload_cast<const JointBoundsVector&>(&RobotModel::getMaximumExtent, py::const_))
-      .def("getMissingVariableNames", &RobotModel::getMissingVariableNames)
       .def("getModelFrame", &RobotModel::getModelFrame)
       .def("getName", &RobotModel::getName)
-      .def("getSRDF", &RobotModel::getSRDF)
-      .def("getURDF", &RobotModel::getURDF)
       .def("getVariableBounds", &RobotModel::getVariableBounds)
       .def("getVariableCount", &RobotModel::getVariableCount)
-      .def("getVariableDefaultPositions",
-           py::overload_cast<double*>(&RobotModel::getVariableDefaultPositions, py::const_))
       .def("getVariableDefaultPositions",
            py::overload_cast<std::map<std::string, double>&>(&RobotModel::getVariableDefaultPositions, py::const_))
       .def("getVariableDefaultPositions",
            py::overload_cast<std::vector<double>&>(&RobotModel::getVariableDefaultPositions, py::const_))
       .def("getVariableIndex", &RobotModel::getVariableIndex)
       .def("getVariableNames", &RobotModel::getVariableNames)
-      .def("getRootJoint", &RobotModel::getRootJoint)
+      .def("getRootJoint", &RobotModel::getRootJoint, py::return_value_policy::reference)
       .def("getRootJointName", &RobotModel::getRootJointName)
-      .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel, py::const_))
-      .def("getJointModel", py::overload_cast<int>(&RobotModel::getJointModel, py::const_))
-      .def("getJointModel", py::overload_cast<const std::string&>(&RobotModel::getJointModel))
-      .def("getJointModels",
-           [](RobotModel const& robot_model) {
-             // JointModel is an abstract class, so we must store pointers instead of values
-             std::vector<std::unique_ptr<JointModel const>> joint_models;
-             auto const& joint_models_raw = robot_model.getJointModels();
-             std::transform(joint_models_raw.cbegin(), joint_models_raw.cend(), std::back_inserter(joint_models),
-                            [](JointModel const* joint_model) {
-                              return std::unique_ptr<JointModel const>(joint_model);
-                            });
-             return joint_models;
-           })
+      .def("getRootLink", &RobotModel::getRootLink, py::return_value_policy::reference)
       .def("getJointModelNames", &RobotModel::getJointModelNames)
-      .def("getActiveJointModels", py::overload_cast<>(&RobotModel::getActiveJointModels, py::const_))
-      .def("getSingleDOFJointModels", &RobotModel::getSingleDOFJointModels)
-      .def("getMultiDOFJointModels", &RobotModel::getMultiDOFJointModels)
-      .def("getContinuousJointModels", &RobotModel::getContinuousJointModels)
-      .def("getMimicJointModels", &RobotModel::getMimicJointModels)
       .def("getJointOfVariable", py::overload_cast<int>(&RobotModel::getJointOfVariable, py::const_))
       .def("getJointOfVariable", py::overload_cast<const std::string&>(&RobotModel::getJointOfVariable, py::const_))
       .def("getJointModelCount", &RobotModel::getJointModelCount)
       .def("hasJointModelGroup", &RobotModel::hasJointModelGroup)
-      .def("getJointModelGroup", py::overload_cast<const std::string&>(&RobotModel::getJointModelGroup, py::const_))
-      .def("getJointModelGroup", py::overload_cast<const std::string&>(&RobotModel::getJointModelGroup))
-      .def("getJointModelGroups", py::overload_cast<>(&RobotModel::getJointModelGroups, py::const_))
-      .def("getJointModelGroupNames", &RobotModel::getJointModelGroupNames)
-      .def("getEndEffector", py::overload_cast<const std::string&>(&RobotModel::getEndEffector, py::const_))
       //
       ;
 
   py::class_<JointModelGroup, JointModelGroupPtr>(m, "JointModelGroup")
-      .def(py::init<const std::string&, const srdf::Model::Group&, const std::vector<const JointModel*>&,
-                    const RobotModel*>(),
-           py::arg("name"), py::arg("config"), py::arg("joint_vector"), py::arg("parent_model"))
       .def("addDefaultState", &JointModelGroup::addDefaultState)
       .def("attachEndEffector", &JointModelGroup::attachEndEffector)
       .def("canSetStateFromIK", &JointModelGroup::canSetStateFromIK)
@@ -220,14 +177,70 @@ void def_robot_model_bindings(py::module& m)
            })
       //
       ;
-  py::class_<JointModel, std::shared_ptr<JointModel>>(m, "JointModel")
-      //
-      ;
-  py::class_<FixedJointModel, std::shared_ptr<FixedJointModel>>(m, "FixedJointModel").def(py::init<std::string>())
-      //
-      ;
-  py::class_<RevoluteJointModel, std::shared_ptr<RevoluteJointModel>>(m, "RevoluteJointModel")
+  py::class_<LinkModel>(m, "LinkModel")
       .def(py::init<std::string>())
+      .def("getName", &LinkModel::getName)
+      .def("areCollisionOriginTransformsIdentity", &LinkModel::areCollisionOriginTransformsIdentity)
+      .def("getCenteredBoundingBoxOffset", &LinkModel::getCenteredBoundingBoxOffset)
+      .def("getCollisionOriginTransforms",
+           [&](LinkModel const& link) {
+             std::vector<Eigen::Matrix4d> matrices;
+             auto const& transforms = link.getCollisionOriginTransforms();
+             std::transform(transforms.cbegin(), transforms.cend(), std::back_inserter(matrices),
+                            [&](Eigen::Isometry3d t) { return t.matrix(); });
+             return matrices;
+           })
+      .def("getFirstCollisionBodyTransformIndex", &LinkModel::getFirstCollisionBodyTransformIndex)
+      .def("getJointOriginTransform", [&](LinkModel const& link) { link.getJointOriginTransform().matrix(); })
+      .def("getLinkIndex", &LinkModel::getLinkIndex)
+      .def("getShapeExtentsAtOrigin", &LinkModel::getShapeExtentsAtOrigin)
+      .def("getVisualMeshFilename", &LinkModel::getVisualMeshFilename)
+      .def("getVisualMeshOrigin", [&](LinkModel const& link) { return link.getVisualMeshOrigin().matrix(); })
+      .def("getVisualMeshScale", &LinkModel::getVisualMeshScale)
+      .def("jointOriginTransformIsIdentity", &LinkModel::jointOriginTransformIsIdentity)
+      .def("parentJointIsFixed", &LinkModel::parentJointIsFixed)
+      //
+      ;
+  py::class_<JointModel>(m, "JointModel")
+      .def("getName", &JointModel::getName)
+      .def("addDescendantJointModel", &JointModel::addDescendantJointModel)
+      .def("addDescendantLinkModel", &JointModel::addDescendantLinkModel)
+      .def("addMimicRequest", &JointModel::addMimicRequest)
+      .def("getChildLinkModel", &JointModel::getChildLinkModel)
+      .def("getDescendantJointModels", &JointModel::getDescendantJointModels, py::return_value_policy::reference)
+      .def("getDescendantLinkModels", &JointModel::getDescendantLinkModels, py::return_value_policy::reference)
+      .def("getDistanceFactor", &JointModel::getDistanceFactor)
+      .def("getMaximumExtent", py::overload_cast<>(&JointModel::getMaximumExtent, py::const_))
+      .def("getMimic", &JointModel::getMimic)
+      .def("getMimicFactor", &JointModel::getMimicFactor)
+      .def("getMimicOffset", &JointModel::getMimicOffset)
+      .def("getMimicRequests", &JointModel::getMimicRequests)
+      .def("getNonFixedDescendantJointModels", &JointModel::getNonFixedDescendantJointModels,
+           py::return_value_policy::reference)
+      .def("getParentLinkModel", &JointModel::getParentLinkModel)
+      .def("getStateSpaceDimension", &JointModel::getStateSpaceDimension)
+      .def("getTypeName", &JointModel::getTypeName)
+      .def("isPassive", &JointModel::isPassive)
+      .def("setChildLinkModel", &JointModel::setChildLinkModel, py::keep_alive<1, 2>())
+      .def("setDistanceFactor", &JointModel::setDistanceFactor)
+      .def("setMimic", &JointModel::setMimic, py::keep_alive<1, 2>())
+      .def("setParentLinkModel", &JointModel::setParentLinkModel, py::keep_alive<1, 2>())
+      .def("setPassive", &JointModel::setPassive)
+      //
+      ;
+  py::class_<FloatingJointModel, JointModel>(m, "FloatingJointModel").def(py::init<std::string>())
+      //
+      ;
+  py::class_<PlanarJointModel, JointModel>(m, "PlanarJointModel").def(py::init<std::string>())
+      //
+      ;
+  py::class_<PrismaticJointModel, JointModel>(m, "PrismaticJointModel").def(py::init<std::string>())
+      //
+      ;
+  py::class_<FixedJointModel, JointModel>(m, "FixedJointModel").def(py::init<std::string>())
+      //
+      ;
+  py::class_<RevoluteJointModel, JointModel>(m, "RevoluteJointModel").def(py::init<std::string>())
       //
       ;
   py::class_<VariableBounds, std::shared_ptr<VariableBounds>>(m, "VariableBounds")
