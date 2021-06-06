@@ -6,22 +6,37 @@ import rospkg
 import rospy
 
 from moveit.core import load_robot_model
-from moveit.core.robot_model import RobotModel, RevoluteJointModel, FloatingJointModel, PlanarJointModel, \
-    FixedJointModel, LinkModel
+from moveit.core.robot_model import (
+    RobotModel,
+    RevoluteJointModel,
+    FloatingJointModel,
+    PlanarJointModel,
+    FixedJointModel,
+    LinkModel,
+)
 
 
 class TestPyRobotModel:
     def test_all(self):
         # Load the panda model
         p = rospkg.RosPack()
-        urdf_path = pathlib.Path(p.get_path("moveit_resources_panda_description")) / 'urdf' / 'panda.urdf'
-        srdf_path = pathlib.Path(p.get_path("moveit_resources_panda_moveit_config")) / 'config' / 'panda.srdf'
+        urdf_path = (
+            pathlib.Path(p.get_path("moveit_resources_panda_description"))
+            / "urdf"
+            / "panda.urdf"
+        )
+        srdf_path = (
+            pathlib.Path(p.get_path("moveit_resources_panda_moveit_config"))
+            / "config"
+            / "panda.srdf"
+        )
         model: RobotModel = load_robot_model(urdf_path.as_posix(), srdf_path.as_posix())
 
-        # # Test every exposed method
+        # Test every exposed method
         model.getActiveJointModelsBounds()
         model.getMaximumExtent()
-        model.getMaximumExtent()
+        _ = model.getMaximumExtent()
+        model.getJointModel("panda_joint1")
         model.getModelFrame()
         model.getName()
         model.getVariableBounds("panda_joint1")
@@ -34,9 +49,6 @@ class TestPyRobotModel:
         link = model.getRootLink()
 
         joint = model.getRootJoint()
-        # joint.addDescendantJointModel()
-        # joint.addDescendantLinkModel()
-        # joint.addMimicRequest()
         joint.getChildLinkModel()
         joint.getDescendantJointModels()
         joint.getDescendantLinkModels()
@@ -57,6 +69,9 @@ class TestPyRobotModel:
         joint.setMimic(RevoluteJointModel("fake_mimic_joint"), 0, 0)
         joint.setParentLinkModel(LinkModel("fake_parent_link"))
         joint.setPassive(True)
+        # do this at the end so it doesn't mess with the above "get" calls
+        joint.addDescendantJointModel(FixedJointModel("fake_descendent_joint"))
+        joint.addDescendantLinkModel(LinkModel("fake_descendent_link"))
 
         print(joint)
 
@@ -90,5 +105,5 @@ def rospy_init_fixture():
     return TestPyRobotModel()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main()
