@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import pathlib
-
 import pytest
 import rospkg
 import rospy
@@ -21,16 +19,12 @@ class TestPyRobotModel:
         # Load the panda model
         p = rospkg.RosPack()
         urdf_path = (
-            pathlib.Path(p.get_path("moveit_resources_panda_description"))
-            / "urdf"
-            / "panda.urdf"
+            p.get_path("moveit_resources_panda_description") + "/urdf/panda.urdf"
         )
         srdf_path = (
-            pathlib.Path(p.get_path("moveit_resources_panda_moveit_config"))
-            / "config"
-            / "panda.srdf"
+            p.get_path("moveit_resources_panda_moveit_config") + "/config/panda.srdf"
         )
-        model: RobotModel = load_robot_model(urdf_path.as_posix(), srdf_path.as_posix())
+        model = load_robot_model(urdf_path, srdf_path)
 
         # Test every exposed method
         bounds = model.getActiveJointModelsBounds()
