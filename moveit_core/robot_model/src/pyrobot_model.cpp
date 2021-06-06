@@ -50,7 +50,7 @@ void def_robot_model_bindings(py::module& m)
   py::class_<RobotModel, RobotModelPtr>(m, "RobotModel")
       .def(py::init<const urdf::ModelInterfaceSharedPtr&, const srdf::ModelConstSharedPtr&>(), py::arg("urdf_model"),
            py::arg("srdf_model"))
-      .def("getActiveJointModelsBounds", &RobotModel::getActiveJointModelsBounds)
+      .def("getActiveJointModelsBounds", &RobotModel::getActiveJointModelsBounds, py::return_value_policy::reference)
       .def("getMaximumExtent", py::overload_cast<>(&RobotModel::getMaximumExtent, py::const_))
       .def("getMaximumExtent", py::overload_cast<const JointBoundsVector&>(&RobotModel::getMaximumExtent, py::const_))
       .def("getModelFrame", &RobotModel::getModelFrame)
@@ -72,62 +72,56 @@ void def_robot_model_bindings(py::module& m)
       .def("getJointOfVariable", py::overload_cast<int>(&RobotModel::getJointOfVariable, py::const_))
       .def("getJointOfVariable", py::overload_cast<const std::string&>(&RobotModel::getJointOfVariable, py::const_))
       .def("getJointModelCount", &RobotModel::getJointModelCount)
+      .def("getJointModelGroup", py::overload_cast<std::string const&>(&RobotModel::getJointModelGroup, py::const_),
+           py::return_value_policy::reference)
       .def("hasJointModelGroup", &RobotModel::hasJointModelGroup)
       //
       ;
 
   py::class_<JointModelGroup, JointModelGroupPtr>(m, "JointModelGroup")
-      .def("addDefaultState", &JointModelGroup::addDefaultState)
-      .def("attachEndEffector", &JointModelGroup::attachEndEffector)
       .def("canSetStateFromIK", &JointModelGroup::canSetStateFromIK)
-      .def("distance", &JointModelGroup::distance)
-      .def("enforcePositionBounds", py::overload_cast<double*>(&JointModelGroup::enforcePositionBounds, py::const_))
-      .def("enforcePositionBounds",
-           py::overload_cast<double*, const JointBoundsVector&>(&JointModelGroup::enforcePositionBounds, py::const_))
       .def("getActiveJointModelNames", &JointModelGroup::getActiveJointModelNames)
-      .def("getActiveJointModels", &JointModelGroup::getActiveJointModels)
-      .def("getActiveJointModelsBounds", &JointModelGroup::getActiveJointModelsBounds)
+      .def("getActiveJointModels", &JointModelGroup::getActiveJointModels, py::return_value_policy::reference)
+      .def("getActiveJointModelsBounds", &JointModelGroup::getActiveJointModelsBounds,
+           py::return_value_policy::reference)
       .def("getAttachedEndEffectorNames", &JointModelGroup::getAttachedEndEffectorNames)
-      .def("getCommonRoot", &JointModelGroup::getCommonRoot)
-      .def("getConfig", &JointModelGroup::getConfig)
-      .def("getContinuousJointModels", &JointModelGroup::getContinuousJointModels)
+      .def("getCommonRoot", &JointModelGroup::getCommonRoot, py::return_value_policy::reference)
+      .def("getContinuousJointModels", &JointModelGroup::getContinuousJointModels, py::return_value_policy::reference)
       .def("getDefaultIKTimeout", &JointModelGroup::getDefaultIKTimeout)
       .def("getDefaultStateNames", &JointModelGroup::getDefaultStateNames)
       .def("getEndEffectorName", &JointModelGroup::getEndEffectorName)
-      .def("getEndEffectorParentGroup", &JointModelGroup::getEndEffectorParentGroup)
+      .def("getEndEffectorParentGroup", &JointModelGroup::getEndEffectorParentGroup, py::return_value_policy::reference)
       .def("getEndEffectorTips",
            py::overload_cast<std::vector<const LinkModel*>&>(&JointModelGroup::getEndEffectorTips, py::const_))
       .def("getEndEffectorTips",
            py::overload_cast<std::vector<std::string>&>(&JointModelGroup::getEndEffectorTips, py::const_))
-      .def("getFixedJointModels", &JointModelGroup::getFixedJointModels)
-      .def("getGroupKinematics", &JointModelGroup::getGroupKinematics)
-      .def("getJointModel", &JointModelGroup::getJointModel)
+      .def("getFixedJointModels", &JointModelGroup::getFixedJointModels, py::return_value_policy::reference)
+      .def("getJointModel", &JointModelGroup::getJointModel, py::return_value_policy::reference)
       .def("getJointModelNames", &JointModelGroup::getJointModelNames)
-      .def("getJointModels", &JointModelGroup::getJointModels)
-      .def("getJointRoots", &JointModelGroup::getJointRoots)
-      .def("getKinematicsSolverJointBijection", &JointModelGroup::getKinematicsSolverJointBijection)
-      .def("getLinkModel", &JointModelGroup::getLinkModel)
+      .def("getJointModels", &JointModelGroup::getJointModels, py::return_value_policy::reference)
+      .def("getJointRoots", &JointModelGroup::getJointRoots, py::return_value_policy::reference)
+      .def("getLinkModel", &JointModelGroup::getLinkModel, py::return_value_policy::reference)
       .def("getLinkModelNames", &JointModelGroup::getLinkModelNames)
       .def("getLinkModelNamesWithCollisionGeometry", &JointModelGroup::getLinkModelNamesWithCollisionGeometry)
-      .def("getLinkModels", &JointModelGroup::getLinkModels)
+      .def("getLinkModels", &JointModelGroup::getLinkModels, py::return_value_policy::reference)
       .def("getMaximumExtent", py::overload_cast<>(&JointModelGroup::getMaximumExtent, py::const_))
       .def("getMaximumExtent",
            py::overload_cast<const JointBoundsVector&>(&JointModelGroup::getMaximumExtent, py::const_))
-      .def("getMimicJointModels", &JointModelGroup::getMimicJointModels)
+      .def("getMimicJointModels", &JointModelGroup::getMimicJointModels, py::return_value_policy::reference)
       .def("getName", &JointModelGroup::getName)
-      .def("getOnlyOneEndEffectorTip", &JointModelGroup::getOnlyOneEndEffectorTip)
-      .def("getParentModel", &JointModelGroup::getParentModel)
-      .def("getSolverInstance", py::overload_cast<>(&JointModelGroup::getSolverInstance))
-      .def("getSolverInstance", py::overload_cast<>(&JointModelGroup::getSolverInstance, py::const_))
+      .def("getOnlyOneEndEffectorTip", &JointModelGroup::getOnlyOneEndEffectorTip, py::return_value_policy::reference)
+      .def("getParentModel", &JointModelGroup::getParentModel, py::return_value_policy::reference)
       .def("getSubgroupNames", &JointModelGroup::getSubgroupNames)
-      .def("getSubgroups", &JointModelGroup::getSubgroups)
+      .def("getSubgroups", &JointModelGroup::getSubgroups, py::return_value_policy::reference)
       .def("getUpdatedLinkModelNames", &JointModelGroup::getUpdatedLinkModelNames)
-      .def("getUpdatedLinkModels", &JointModelGroup::getUpdatedLinkModels)
-      .def("getUpdatedLinkModelsSet", &JointModelGroup::getUpdatedLinkModelsSet)
-      .def("getUpdatedLinkModelsWithGeometry", &JointModelGroup::getUpdatedLinkModelsWithGeometry)
+      .def("getUpdatedLinkModels", &JointModelGroup::getUpdatedLinkModels, py::return_value_policy::reference)
+      .def("getUpdatedLinkModelsSet", &JointModelGroup::getUpdatedLinkModelsSet, py::return_value_policy::reference)
+      .def("getUpdatedLinkModelsWithGeometry", &JointModelGroup::getUpdatedLinkModelsWithGeometry,
+           py::return_value_policy::reference)
       .def("getUpdatedLinkModelsWithGeometryNames", &JointModelGroup::getUpdatedLinkModelsWithGeometryNames)
       .def("getUpdatedLinkModelsWithGeometryNamesSet", &JointModelGroup::getUpdatedLinkModelsWithGeometryNamesSet)
-      .def("getUpdatedLinkModelsWithGeometrySet", &JointModelGroup::getUpdatedLinkModelsWithGeometrySet)
+      .def("getUpdatedLinkModelsWithGeometrySet", &JointModelGroup::getUpdatedLinkModelsWithGeometrySet,
+           py::return_value_policy::reference)
       .def("getVariableCount", &JointModelGroup::getVariableCount)
       .def("getVariableDefaultPositions", py::overload_cast<const std::string&, std::map<std::string, double>&>(
                                               &JointModelGroup::getVariableDefaultPositions, py::const_))
@@ -142,30 +136,18 @@ void def_robot_model_bindings(py::module& m)
       .def("getVariableNames", &JointModelGroup::getVariableNames)
       .def("hasJointModel", &JointModelGroup::hasJointModel)
       .def("hasLinkModel", &JointModelGroup::hasLinkModel)
-      .def("interpolate", &JointModelGroup::interpolate)
       .def("isChain", &JointModelGroup::isChain)
       .def("isContiguousWithinState", &JointModelGroup::isContiguousWithinState)
       .def("isEndEffector", &JointModelGroup::isEndEffector)
       .def("isLinkUpdated", &JointModelGroup::isLinkUpdated)
       .def("isSingleDOFJoints", &JointModelGroup::isSingleDOFJoints)
       .def("isSubgroup", &JointModelGroup::isSubgroup)
-      .def("isValidVelocityMove", py::overload_cast<const double*, const double*, std::size_t, double>(
-                                      &JointModelGroup::isValidVelocityMove, py::const_))
-      .def("isValidVelocityMove", py::overload_cast<const std::vector<double>&, const std::vector<double>&, double>(
-                                      &JointModelGroup::isValidVelocityMove, py::const_))
       .def("printGroupInfo",
            [](const JointModelGroup& jmg) {
              std::stringstream ss;
              jmg.printGroupInfo(ss);
              return ss.str();
            })
-      .def("satisfiesPositionBounds",
-           py::overload_cast<const double*, const JointBoundsVector&, double>(&JointModelGroup::satisfiesPositionBounds,
-                                                                              py::const_),
-           py::arg("state"), py::arg("active_joint_bounds"), py::arg("margin") = 0.0)
-      .def("satisfiesPositionBounds",
-           py::overload_cast<const double*, double>(&JointModelGroup::satisfiesPositionBounds, py::const_),
-           py::arg("state"), py::arg("margin") = 0.0)
       .def("setDefaultIKTimeout", &JointModelGroup::setDefaultIKTimeout)
       .def("setEndEffectorName", &JointModelGroup::setEndEffectorName)
       .def("setEndEffectorParent", &JointModelGroup::setEndEffectorParent)
