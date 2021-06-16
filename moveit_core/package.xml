@@ -42,6 +42,7 @@
   <depend>roslib</depend>
   <depend>rostime</depend>
   <depend>rosconsole</depend>
+  <depend>rosdoc_lite</depend>
   <depend>sensor_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>srdfdom</depend>
