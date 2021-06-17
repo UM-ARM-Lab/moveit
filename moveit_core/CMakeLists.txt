@@ -74,6 +74,7 @@ COMPONENTS
   roslib
   rostime
   rosconsole
+  rosdoc_lite
   sensor_msgs
   shape_msgs
   srdfdom

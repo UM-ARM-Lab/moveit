@@ -53,7 +53,7 @@
   <depend>xmlrpcpp</depend>
 
   <doc_depend>python3-sphinx-rtd-theme</doc_depend>
-  <doc_depend>rosdoc_lite</doc_depend>
+  <depend>rosdoc_lite</depend>
 
   <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>moveit_resources_pr2_description</test_depend>
