@@ -20,7 +20,7 @@ jobs:
           - IMAGE: latest
     env:
       CXXFLAGS: "-Werror -Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-deprecated-copy"
-      DOCKER_IMAGE: petermitrano/moveit-dics:${{ matrix.env.IMAGE }}
+      DOCKER_IMAGE: petermitrano/moveit-docs:${{ matrix.env.IMAGE }}
       UPSTREAM_WORKSPACE: .github/workflows/upstream.rosinstall
       TARGET_WORKSPACE: $TARGET_REPO_PATH github:ros-planning/moveit_resources#master
       DOWNSTREAM_WORKSPACE: .github/workflows/downstream.rosinstall
